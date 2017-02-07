@@ -12,7 +12,7 @@ public class Mesh {
                 new Vector(-1,-1,0),
         };
         triangle.edges = new int[]{
-            0,1, 1,2, 2,3
+            0,1, 1,2, 2,0
         };
         return triangle;
     }

@@ -36,6 +36,14 @@ public class Vector {
         return this;
     }
 
+    public float dot(Vector v){
+        return x * v.x + y * v.y + z * v.z;
+    }
+
+    public Vector project(Vector b){
+        return this.scale(this.dot(b) / this.dot(this));
+    }
+
     public float length(){
         return (float)Math.pow(x*x + y*y + z*z, 0.5);
     }

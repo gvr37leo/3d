@@ -1,16 +1,20 @@
 import processing.core.PApplet;
 
+import java.awt.*;
+
 enum ViewMode {orthogonal, perspective}
 
 public class Camera {
     ViewMode viewMode = ViewMode.orthogonal;
     PApplet app;
+    Color color = Color.white;
 
     Camera(PApplet app){
         this.app = app;
     }
 
     void draw(Mesh mesh){
+        app.fill(color.getRed(), color.getGreen(), color.getBlue());
         Vector screenSize = new Vector(app.width, app.height, 0);
         Vector[] screenCoords = new Vector[mesh.vertices.length];
         for(int i = 0; i < mesh.vertices.length; i++){
@@ -24,6 +28,14 @@ public class Camera {
             else app.stroke(255);
             app.line(p1.x, p1.y, p2.x, p2.y);
         }
+    }
+
+    void draw(Vector v){
+
+    }
+
+    void draw(Vector from, Vector dir){
+
     }
 
 

@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 public class Main extends PApplet{
 
-    Mesh cube;
+    Mesh triangle;
     Camera camera = new Camera(this);
     float rotationSpeed = 4;
     HashMap<Character, Boolean> keyMap = new HashMap<Character, Boolean>();
@@ -32,11 +32,11 @@ public class Main extends PApplet{
         if(keyMap.get('r') != null && keyMap.get('r'))translation.add(new Vector(0,0,-1).scale(dt));
         if(keyMap.get('f') != null && keyMap.get('f'))translation.add(new Vector(0,0,1).scale(dt));
 
-        cube = Mesh.generateCube();
-        cube.rot(rot);
-        cube.add(translation);
-        cube.add(new Vector(0,0,2));
-        camera.draw(cube);
+        triangle = Mesh.generateTriangle();
+        triangle.rot(rot);
+        triangle.add(translation);
+        triangle.add(new Vector(0,0,5));
+        camera.draw(triangle);
     }
 
     public void keyPressed(KeyEvent event) {
