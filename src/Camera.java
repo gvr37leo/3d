@@ -12,12 +12,22 @@ public class Camera {
     RenderMode renderMode = RenderMode.solid;
     PApplet app;
     Color color = Color.white;
+    Color[] colors = new Color[]{
+            Color.yellow,
+            Color.blue,
+            Color.cyan,
+            Color.magenta,
+            Color.red,
+            Color.pink,
+            Color.green,
+    };
 
     Camera(PApplet app){
         this.app = app;
     }
 
     void draw(Mesh mesh){
+
         app.fill(color.getRed(), color.getGreen(), color.getBlue());
         Vector screenSize = new Vector(app.width, app.height, 0);
         Vector[] screenCoords = new Vector[mesh.vertices.length];
@@ -38,6 +48,7 @@ public class Camera {
                 Vector p1 = screenCoords[mesh.faces[i]];
                 Vector p2 = screenCoords[mesh.faces[i + 1]];
                 Vector p3 = screenCoords[mesh.faces[i + 2]];
+                color = colors[(i / 3) % colors.length];
                 triangle(p1, p2, p3);
             }
         }
@@ -107,8 +118,7 @@ public class Camera {
             int xEnd = (int)Math.ceil(px1 - 0.5f);
             for(int x = xStart; x < xEnd; x++){
                 Color col = new Color((int)app.random(255),(int)app.random(255),(int)app.random(255));
-                app.pixels[y * app.width + x] = app.color(col.getRed(), col.getGreen(), col.getBlue());
-//                app.pixels[y * app.width + x] = app.color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+                app.pixels[y * app.width + x] = app.color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
             }
         }
     }
