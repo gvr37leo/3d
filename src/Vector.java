@@ -1,3 +1,5 @@
+import java.security.PublicKey;
+
 public class Vector {
     float x;
     float y;
@@ -34,6 +36,10 @@ public class Vector {
         y *= s;
         z *= s;
         return this;
+    }
+
+    public Vector lerp(Vector v, float weight){
+        return c().add(v.c().sub(this).scale(weight));
     }
 
     public float dot(Vector v){

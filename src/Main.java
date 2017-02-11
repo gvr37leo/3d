@@ -1,11 +1,12 @@
 import processing.core.PApplet;
 import processing.event.KeyEvent;
 
+import java.awt.*;
 import java.util.HashMap;
 
 public class Main extends PApplet{
 
-    Mesh triangle;
+    Mesh mesh;
     Camera camera = new Camera(this);
     float rotationSpeed = 4;
     HashMap<Character, Boolean> keyMap = new HashMap<Character, Boolean>();
@@ -23,6 +24,7 @@ public class Main extends PApplet{
 
     public void draw(){
         clear();
+        loadPixels();
         if(keyMap.get('w') != null && keyMap.get('w')) rot.add(new Vector(1,0,0).scale(rotationSpeed).scale(dt));
         if(keyMap.get('s') != null && keyMap.get('s')) rot.add(new Vector(-1,0,0).scale(rotationSpeed).scale(dt));
         if(keyMap.get('a') != null && keyMap.get('a')) rot.add(new Vector(0,-1,0).scale(rotationSpeed).scale(dt));
@@ -32,11 +34,12 @@ public class Main extends PApplet{
         if(keyMap.get('r') != null && keyMap.get('r'))translation.add(new Vector(0,0,-1).scale(dt));
         if(keyMap.get('f') != null && keyMap.get('f'))translation.add(new Vector(0,0,1).scale(dt));
 
-        triangle = Mesh.generateTriangle();
-        triangle.rot(rot);
-        triangle.add(translation);
-        triangle.add(new Vector(0,0,5));
-        camera.draw(triangle);
+        mesh = Mesh.generateCube();
+        mesh.rot(rot);
+        mesh.add(translation);
+        mesh.add(new Vector(0,0,3));
+        camera.draw(mesh);
+        updatePixels();
     }
 
     public void keyPressed(KeyEvent event) {
