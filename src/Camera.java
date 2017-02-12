@@ -20,6 +20,8 @@ public class Camera {
             Color.red,
             Color.pink,
             Color.green,
+            Color.gray,
+            Color.white
     };
 
     Camera(PApplet app){
@@ -39,8 +41,6 @@ public class Camera {
             for (int i = 0; i < mesh.edges.length; i += 2) {
                 Vector p1 = screenCoords[mesh.edges[i]];
                 Vector p2 = screenCoords[mesh.edges[i + 1]];
-                if (i == 0) app.stroke(255, 0, 0);
-                else app.stroke(255);
                 app.line(p1.x, p1.y, p2.x, p2.y);
             }
         }else {
@@ -60,11 +60,17 @@ public class Camera {
     }
 
     void draw(Vector v){
-
+        Vector v2 = Transformer.wsToss(v.c(), new Vector(app.width, app.height, 0));
+        app.fill(color.getRed(), color.getGreen(), color.getBlue());
+        app.rect(v2.x - 5,v2.y - 5,10,10);
+//        app.pixels[(int)v2.y * app.width + (int)v2.x] = app.color();
     }
 
     void draw(Vector from, Vector dir){
-
+        Vector screensize = new Vector(app.width, app.height, 0);
+        Vector from2 = Transformer.wsToss(from.c(), screensize);
+        Vector dir2 = Transformer.wsToss(dir.c(), screensize);
+        app.line(from2.x, from2.y, dir2.x, dir2.y);
     }
 
     void triangle(Vector a, Vector b, Vector c){
@@ -117,7 +123,7 @@ public class Camera {
             int xStart = (int)Math.ceil(px0 - 0.5f);
             int xEnd = (int)Math.ceil(px1 - 0.5f);
             for(int x = xStart; x < xEnd; x++){
-                Color col = new Color((int)app.random(255),(int)app.random(255),(int)app.random(255));
+                //Color col = new Color((int)app.random(255),(int)app.random(255),(int)app.random(255));
                 app.pixels[y * app.width + x] = app.color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
             }
         }

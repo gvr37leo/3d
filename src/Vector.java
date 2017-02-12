@@ -4,6 +4,8 @@ public class Vector {
     float x;
     float y;
     float z;
+    float u;
+    float v;
 
     Vector(){
         this.x = 0;
@@ -15,6 +17,14 @@ public class Vector {
         this.x = x;
         this.y = y;
         this.z = z;
+    }
+
+    Vector(float x, float y, float z, float u, float v){
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.u = u;
+        this.v = v;
     }
 
     public Vector add(Vector v){
@@ -46,8 +56,16 @@ public class Vector {
         return x * v.x + y * v.y + z * v.z;
     }
 
-    public Vector project(Vector b){
-        return this.scale(this.dot(b) / this.dot(this));
+    public Vector cross(Vector v){
+        return new Vector(
+                y * v.z - z * v.y,
+                z * v.x - x * v.z,
+                x * v.y - y * v.x
+        );
+    }
+
+    public Vector project(Vector v){
+        return this.c().scale(this.dot(v) / this.dot(this));
     }
 
     public float length(){

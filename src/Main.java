@@ -39,7 +39,13 @@ public class Main extends PApplet{
         mesh.add(translation);
         mesh.add(new Vector(0,0,3));
         camera.draw(mesh);
+
+
+//        (float)(mouseX / width) * 2 - 1, (float)(mouseY / height) * 2 - 1, 0
         updatePixels();
+        camera.color = Color.white;
+        camera.draw(Transformer.ssTows(new Vector(mouseX, mouseY, 0), new Vector(width, height, 0)),
+                mesh.vertices[7]);
     }
 
     public void keyPressed(KeyEvent event) {
