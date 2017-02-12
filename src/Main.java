@@ -13,13 +13,15 @@ public class Main extends PApplet{
     float dt = 1.0f / 60;
     Vector rot = new Vector(0, 0, 0);
     Vector translation = new Vector();
+    private Vector screensize;
 
     public void settings(){
         size(500, 500);
     }
 
     public void setup(){
-        stroke(255);
+        screensize = new Vector(width, height, 0);
+        noStroke();
     }
 
     public void draw(){
@@ -40,12 +42,19 @@ public class Main extends PApplet{
         mesh.add(new Vector(0,0,3));
         camera.draw(mesh);
 
-
-//        (float)(mouseX / width) * 2 - 1, (float)(mouseY / height) * 2 - 1, 0
         updatePixels();
-        camera.color = Color.white;
-        camera.draw(Transformer.ssTows(new Vector(mouseX, mouseY, 0), new Vector(width, height, 0)),
-                mesh.vertices[7]);
+        camera.color = Color.red;
+
+        Vector intersect = RayCaster.rayTriangle(new Vector(), Transformer.ssTows(new Vector(mouseX, mouseY, 0), screensize),
+                mesh.vertices[4],
+                mesh.vertices[6],
+                mesh.vertices[5]
+                );
+
+        if(intersect != null){
+            camera.draw(intersect);
+        }
+
     }
 
     public void keyPressed(KeyEvent event) {
