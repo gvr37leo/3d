@@ -8,6 +8,7 @@ enum ViewMode {orthogonal, perspective}
 enum RenderMode {solid, wireframe}
 
 public class Camera {
+    Vector lightDir = new Vector(0,0,1).normalize();
     Vector dir = new Vector(0,0,1);
     ViewMode viewMode = ViewMode.orthogonal;
     RenderMode renderMode = RenderMode.solid;
@@ -50,9 +51,20 @@ public class Camera {
                 Vector p1 = screenCoords[mesh.faces[i]];
                 Vector p2 = screenCoords[mesh.faces[i + 1]];
                 Vector p3 = screenCoords[mesh.faces[i + 2]];
-                Vector normal = p2.c().sub(p1).cross(p3.c().sub(p1)).normalize();
+
+                Vector pws1 = mesh.vertices[mesh.faces[i]];
+                Vector pws2 = mesh.vertices[mesh.faces[i + 1]];
+                Vector pws3 = mesh.vertices[mesh.faces[i + 2]];
+
+                Vector normal = pws2.c().sub(pws1).cross(pws3.c().sub(pws1)).normalize();
+//                        p2.c().sub(p1).cross(p3.c().sub(p1)).normalize();
+
+//                Vector normalWS =
                 if(normal.dot(dir) > 0){//back face culling
-                    color = colors[(i / 3) % colors.length];
+//                    color = colors[(i / 3) % colors.length];
+                    float lightIntensity = normal.dot(lightDir);
+                    int light255 = (int)(lightIntensity * 255);
+                    color = new Color(light255, light255, light255);
                     triangle(p1, p2, p3, zbuffer);
                 }
             }
@@ -128,6 +140,7 @@ public class Camera {
             int xStart = (int)Math.ceil(px0 - 0.5f);
             int xEnd = (int)Math.ceil(px1 - 0.5f);
             for(int x = xStart; x < xEnd; x++){
+                if(y * x > app.width * app.height || (y * app.width + x) < 0)continue;
                 //Color col = new Color((int)app.random(255),(int)app.random(255),(int)app.random(255));
                 app.pixels[y * app.width + x] = app.color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
             }
@@ -150,6 +163,7 @@ public class Camera {
             int xStart = (int)Math.ceil(px0 - 0.5f);
             int xEnd = (int)Math.ceil(px1 - 0.5f);
             for(int x = xStart; x < xEnd; x++){
+                if(y * x > app.width * app.height || (y * app.width + x) < 0)continue;
                 app.pixels[y * app.width + x] = app.color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
             }
         }
