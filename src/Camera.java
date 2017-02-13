@@ -8,6 +8,7 @@ enum ViewMode {orthogonal, perspective}
 enum RenderMode {solid, wireframe}
 
 public class Camera {
+    Vector dir = new Vector(0,0,1);
     ViewMode viewMode = ViewMode.orthogonal;
     RenderMode renderMode = RenderMode.solid;
     PApplet app;
@@ -21,7 +22,7 @@ public class Camera {
             Color.pink,
             Color.green,
             Color.gray,
-            Color.white
+            new Color(0x6E2B02)
     };
 
     Camera(PApplet app){
@@ -29,6 +30,7 @@ public class Camera {
     }
 
     void draw(Mesh mesh){
+        int[][] zbuffer = new int[app.width][app.height];
 
         app.fill(color.getRed(), color.getGreen(), color.getBlue());
         Vector screenSize = new Vector(app.width, app.height, 0);
@@ -48,8 +50,11 @@ public class Camera {
                 Vector p1 = screenCoords[mesh.faces[i]];
                 Vector p2 = screenCoords[mesh.faces[i + 1]];
                 Vector p3 = screenCoords[mesh.faces[i + 2]];
-                color = colors[(i / 3) % colors.length];
-                triangle(p1, p2, p3);
+                Vector normal = p2.c().sub(p1).cross(p3.c().sub(p1)).normalize();
+                if(normal.dot(dir) > 0){//back face culling
+                    color = colors[(i / 3) % colors.length];
+                    triangle(p1, p2, p3, zbuffer);
+                }
             }
         }
 
@@ -73,7 +78,7 @@ public class Camera {
         app.line(from2.x, from2.y, dir2.x, dir2.y);
     }
 
-    void triangle(Vector a, Vector b, Vector c){
+    void triangle(Vector a, Vector b, Vector c, int[][] zbuffer){
         Vector[] vers = {a,b,c};
         Arrays.sort(vers, new Comparator<Vector>() {
             public int compare(Vector a, Vector b) {
