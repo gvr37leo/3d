@@ -46,7 +46,7 @@ public class Camera {
                 Vector p2 = screenCoords[mesh.edges[i + 1]];
                 app.line(p1.x, p1.y, p2.x, p2.y);
             }
-        }else {
+        }else {//--------------------------------------solid mode
             for (int i = 0; i < mesh.faces.length; i += 3) {
                 Vector p1 = screenCoords[mesh.faces[i]];
                 Vector p2 = screenCoords[mesh.faces[i + 1]];
@@ -61,10 +61,10 @@ public class Camera {
 
 //                Vector normalWS =
                 if(normal.dot(dir) > 0){//back face culling
-//                    color = colors[(i / 3) % colors.length];
+                    color = colors[(i / 3) % colors.length];
                     float lightIntensity = normal.dot(lightDir);
-                    int light255 = (int)(lightIntensity * 255);
-                    color = new Color(light255, light255, light255);
+                    int light255 = (int)(lightIntensity * 255 % 256);
+//                    color = new Color(light255, light255, light255);
                     triangle(p1, p2, p3, zbuffer);
                 }
             }
