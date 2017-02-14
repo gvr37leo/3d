@@ -59,7 +59,7 @@ public class Main extends PApplet{
 
     public void keyPressed(KeyEvent event) {
         keyMap.put(event.getKey(), true);
-        if(event.getKey() == 'r')rot = new Vector();
+        if(event.getKey() == 't')rot = new Vector();
     }
 
     public void keyReleased(KeyEvent event) {
