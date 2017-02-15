@@ -1,7 +1,10 @@
+import Image.Image;
+
 public class Mesh {
     Vector[] vertices;
     int[] edges;
     int[] faces;
+    Image img;
 
     static Mesh generateTriangle(){
         Mesh triangle = new Mesh();
