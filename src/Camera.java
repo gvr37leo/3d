@@ -67,7 +67,7 @@ public class Camera {
                             Math.abs(lightIntensity),
                             Math.abs(lightIntensity));
                     if(i == 6)color = Color.red;
-                    triangle(p1, p2, p3, zbuffer);
+                    triangle(p1, p2, p3, zbuffer, mesh);
                 }
             }
         }
@@ -92,7 +92,7 @@ public class Camera {
         app.line(from2.x, from2.y, dir2.x, dir2.y);
     }
 
-    void triangle(Vector a, Vector b, Vector c, int[][] zbuffer){
+    void triangle(Vector a, Vector b, Vector c, int[][] zbuffer, Mesh mesh){
         Vector[] vers = {a,b,c};
         Arrays.sort(vers, new Comparator<Vector>() {
             public int compare(Vector a, Vector b) {
@@ -100,35 +100,40 @@ public class Camera {
             }
         });
 
+
         if(vers[0].y == vers[1].y){
             if(vers[1].x < vers[0].x){//swap
                 Vector temp = vers[0];
                 vers[0] = vers[1];
                 vers[1] = temp;
             }
-            flatTop(vers[0], vers[1], vers[2]);
+            flatTop(vers[0], vers[1], vers[2], zbuffer, mesh);
         }else if(vers[1].y == vers[2].y){
             if(vers[2].x < vers[1].x){//swap
                 Vector temp = vers[2];
                 vers[2] = vers[1];
                 vers[1] = temp;
             }
-            flatBot(vers[0], vers[1], vers[2]);
+            flatBot(vers[0], vers[1], vers[2], zbuffer);
         }else{
-            Vector split = vers[0].lerp(vers[2], (vers[1].y - vers[0].y) / (vers[2].y - vers[0].y));
+            float weight = (vers[1].y - vers[0].y) / (vers[2].y - vers[0].y);
+            Vector split = vers[0].lerp(vers[2], weight);
+            Vector uvlerped = new Vector(vers[0].u,vers[0].v,0).lerp(new Vector(vers[2].u, vers[2].v, 0), weight);
+            split.u = uvlerped.x;
+            split.v = uvlerped.y;
             if(vers[1].x < split.x){
-                flatBot(vers[0], vers[1], split);
-                flatTop(vers[1], split, vers[2]);
+                flatBot(vers[0], vers[1], split, zbuffer);
+                flatTop(vers[1], split, vers[2], zbuffer, mesh);
             }else{
-                flatBot(vers[0], split, vers[1]);
-                flatTop(split, vers[1], vers[2]);
+                flatBot(vers[0], split, vers[1], zbuffer);
+                flatTop(split, vers[1], vers[2], zbuffer, mesh);
             }
         }
 
     }
 
     //0 and 1 are tops and 0 is the left of those
-    void flatTop(Vector a, Vector b, Vector c){
+    void flatTop(Vector a, Vector b, Vector c, int[][] zbuffer, Mesh mesh){
         float m0 = (c.x - a.x) / (c.y - a.y);
         float m1 = (c.x - b.x) / (c.y - b.y);
 
@@ -142,19 +147,21 @@ public class Camera {
             int xStart = (int)Math.ceil(px0 - 0.5f);
             int xEnd = (int)Math.ceil(px1 - 0.5f);
             for(int x = xStart; x < xEnd; x++){
-                //Color col = new Color((int)app.random(255),(int)app.random(255),(int)app.random(255));
-                if((y * app.width + x) >= 250000){
-                    int d = 1;
-                }
-                if((y * app.width + x) >= (app.width * app.height) || (y * app.width + x) < 0)continue;
-                app.pixels[y * app.width + x] = app.color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+                Vector bary = RayCaster.barycenter(a,b,c,new Vector(x,y,0));
+                Vector auv = new Vector(a.u, a.v, 0);
+                Vector buv = new Vector(b.u, b.v, 0);
+                Vector cuv = new Vector(c.u, c.v, 0);
+                Vector uv = auv.scale(bary.x).add(buv.scale(bary.y)).add(cuv.scale(bary.z));
+
+                color = mesh.texture.getPixel(uv.x, uv.y).toAWTColor();
+                setPixel(x,y);
             }
         }
     }
 
 
     // b and c are bottom and and b is the left of those
-    void flatBot(Vector a, Vector b, Vector c){
+    void flatBot(Vector a, Vector b, Vector c, int[][] zbuffer){
         float m0 = (b.x - a.x) / (b.y - a.y);
         float m1 = (c.x - a.x) / (c.y - a.y);
 
@@ -168,9 +175,13 @@ public class Camera {
             int xStart = (int)Math.ceil(px0 - 0.5f);
             int xEnd = (int)Math.ceil(px1 - 0.5f);
             for(int x = xStart; x < xEnd; x++){
-                if((y * app.width + x) >= (app.width * app.height) || (y * app.width + x) < 0)continue;
-                app.pixels[y * app.width + x] = app.color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+                setPixel(x,y);
             }
         }
+    }
+
+    private void setPixel(int x, int y){
+        if((y * app.width + x) >= (app.width * app.height) || (y * app.width + x) < 0)return;
+        app.pixels[y * app.width + x] = app.color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
     }
 }

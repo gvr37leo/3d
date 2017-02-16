@@ -4,7 +4,7 @@ public class Mesh {
     Vector[] vertices;
     int[] edges;
     int[] faces;
-    Image img;
+    Image texture;
 
     static Mesh generateTriangle(){
         Mesh triangle = new Mesh();
@@ -27,15 +27,15 @@ public class Mesh {
         float f = 0.5f;
         Mesh cube = new Mesh();
         cube.vertices = new Vector[]{
-                new Vector(-f,f,f),
-                new Vector(f,f,f),
-                new Vector(f,f,-f),
-                new Vector(-f,f,-f),
+                new Vector(-f,f,f,0,0),
+                new Vector(f,f,f,1,0),
+                new Vector(f,f,-f,1,1),
+                new Vector(-f,f,-f,0,1),
 
-                new Vector(-f,-f,f),
-                new Vector(f,-f,f),
-                new Vector(f,-f,-f),
-                new Vector(-f,-f,-f),
+                new Vector(-f,-f,f,0,0),
+                new Vector(f,-f,f,1,0),
+                new Vector(f,-f,-f,1,1),
+                new Vector(-f,-f,-f,0,1),
         };
         cube.edges = new int[]{
                 0,1,  1,2,  2,3,  3,0,
@@ -52,6 +52,7 @@ public class Mesh {
 
                 4,7,6, 4,6,5
         };
+        cube.texture = new Image("textures/crate.png");
         return cube;
     }
 

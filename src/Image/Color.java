@@ -21,4 +21,8 @@ public class Color {
         this.g = buffer[2];
         this.b = buffer[3];
     }
+
+    public java.awt.Color toAWTColor(){
+        return new java.awt.Color(r, g, b, a);
+    }
 }

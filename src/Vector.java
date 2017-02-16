@@ -8,9 +8,7 @@ public class Vector {
     float v;
 
     Vector(){
-        this.x = 0;
-        this.y = 0;
-        this.z = 0;
+        for(int i = 0; i < 3; i++)set(i, 0);
     }
 
     Vector(float x, float y, float z){
@@ -28,23 +26,17 @@ public class Vector {
     }
 
     public Vector add(Vector v){
-        x += v.x;
-        y += v.y;
-        z += v.z;
+        for(int i = 0; i < 3; i++)set(i, get(i) + v.get(i));
         return this;
     }
 
     public Vector sub(Vector v){
-        x -= v.x;
-        y -= v.y;
-        z -= v.z;
+        for(int i = 0; i < 3; i++)set(i, get(i) - v.get(i));
         return this;
     }
 
     public Vector scale(float s){
-        x *= s;
-        y *= s;
-        z *= s;
+        for(int i = 0; i < 3; i++)set(i, get(i) * s);
         return this;
     }
 
@@ -80,11 +72,27 @@ public class Vector {
         return new Vector(x, y, z);
     }
 
-    public Vector set(Vector v){
-        x = v.x;
-        y = v.y;
-        z = v.z;
+    public Vector write(Vector v){
+        for(int i = 0; i < 3; i++)set(i, v.get(i));
         return this;
+    }
+
+    public float get(int i){
+        switch (i){
+            case 1:return y;
+            case 2:return z;
+            default: return x;
+        }
+    }
+
+    public void set(int i, float val){
+        switch (i){
+            case 1:y = val;
+                break;
+            case 2:z = val;
+                break;
+            default: x = val;
+        }
     }
 
     public boolean equals(Vector v){
