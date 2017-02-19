@@ -52,7 +52,8 @@ public class Mesh {
 
                 4,7,6, 4,6,5
         };
-        cube.texture = new Image("textures/crate.png");
+//        cube.texture = new Image("textures/crate.png");
+        cube.texture = Image.fromImage("textures/crate.png");
         return cube;
     }
 

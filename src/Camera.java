@@ -114,7 +114,7 @@ public class Camera {
                 vers[2] = vers[1];
                 vers[1] = temp;
             }
-            flatBot(vers[0], vers[1], vers[2], zbuffer);
+            flatBot(vers[0], vers[1], vers[2], zbuffer, mesh);
         }else{
             float weight = (vers[1].y - vers[0].y) / (vers[2].y - vers[0].y);
             Vector split = vers[0].lerp(vers[2], weight);
@@ -122,10 +122,10 @@ public class Camera {
             split.u = uvlerped.x;
             split.v = uvlerped.y;
             if(vers[1].x < split.x){
-                flatBot(vers[0], vers[1], split, zbuffer);
+                flatBot(vers[0], vers[1], split, zbuffer, mesh);
                 flatTop(vers[1], split, vers[2], zbuffer, mesh);
             }else{
-                flatBot(vers[0], split, vers[1], zbuffer);
+                flatBot(vers[0], split, vers[1], zbuffer, mesh);
                 flatTop(split, vers[1], vers[2], zbuffer, mesh);
             }
         }
@@ -147,21 +147,26 @@ public class Camera {
             int xStart = (int)Math.ceil(px0 - 0.5f);
             int xEnd = (int)Math.ceil(px1 - 0.5f);
             for(int x = xStart; x < xEnd; x++){
-                Vector bary = RayCaster.barycenter(a,b,c,new Vector(x,y,0));
-                Vector auv = new Vector(a.u, a.v, 0);
-                Vector buv = new Vector(b.u, b.v, 0);
-                Vector cuv = new Vector(c.u, c.v, 0);
-                Vector uv = auv.scale(bary.x).add(buv.scale(bary.y)).add(cuv.scale(bary.z));
-
-                color = mesh.texture.getPixel(uv.x, uv.y).toAWTColor();
-                setPixel(x,y);
+                drawPixel(a,b,c,zbuffer,mesh,x,y);
             }
         }
     }
 
+    private void drawPixel(Vector a, Vector b, Vector c, int[][] zbuffer, Mesh mesh, int x, int y){
+        Vector bary = RayCaster.barycenter(a,b,c,new Vector(x,y,2.5f));
+        Vector auv = new Vector(a.u, a.v, 0);
+        Vector buv = new Vector(b.u, b.v, 0);
+        Vector cuv = new Vector(c.u, c.v, 0);
+        Vector uv = auv.scale(bary.x).add(buv.scale(bary.y)).add(cuv.scale(bary.z));
+
+        color = mesh.texture.getPixel(uv.x, uv.y).toAWTColor();
+//        color = Color.blue;
+        setPixel(x,y);
+    }
+
 
     // b and c are bottom and and b is the left of those
-    void flatBot(Vector a, Vector b, Vector c, int[][] zbuffer){
+    void flatBot(Vector a, Vector b, Vector c, int[][] zbuffer, Mesh mesh){
         float m0 = (b.x - a.x) / (b.y - a.y);
         float m1 = (c.x - a.x) / (c.y - a.y);
 
@@ -175,7 +180,7 @@ public class Camera {
             int xStart = (int)Math.ceil(px0 - 0.5f);
             int xEnd = (int)Math.ceil(px1 - 0.5f);
             for(int x = xStart; x < xEnd; x++){
-                setPixel(x,y);
+                drawPixel(a,b,c,zbuffer,mesh,x,y);
             }
         }
     }

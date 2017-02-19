@@ -17,12 +17,12 @@ public class Color {
 
     Color(int rgb){
         byte[] buffer = ByteBuffer.allocate(4).putInt(rgb).array();
-        this.r = buffer[1];
+        this.r = buffer[1] ;
         this.g = buffer[2];
         this.b = buffer[3];
     }
 
     public java.awt.Color toAWTColor(){
-        return new java.awt.Color(r, g, b, a);
+        return new java.awt.Color(r & (0xff), g & (0xff), b & (0xff));
     }
 }
