@@ -77,9 +77,10 @@ public class Image {
     }
 
     public Color getPixel(float u, float v){
-        int x = (int) (size.x * u);
-        int y = (int) (size.y * v);
-        int index = y * size.x + x;
+        int x = (int) ((size.x - 1 ) * u);
+        int y = (int) ((size.y - 1 ) * v);
+        int index = (y * size.x + x) * channels;
+        index = index % (data.length - 1);
         return new Color(data[index], data[index + 1], data[index + 2], data[index + 3]);
     }
 

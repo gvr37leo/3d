@@ -8,8 +8,8 @@ enum ViewMode {orthogonal, perspective}
 enum RenderMode {solid, wireframe}
 
 public class Camera {
-    Vector lightDir = new Vector(0,0,1).normalize();
-    Vector dir = new Vector(0,0,-1);
+    Vector lightDir = new Vector3(0,0,1).normalize();
+    Vector dir = new Vector3(0,0,-1);
     ViewMode viewMode = ViewMode.orthogonal;
     RenderMode renderMode = RenderMode.solid;
     PApplet app;
@@ -34,30 +34,30 @@ public class Camera {
         int[][] zbuffer = new int[app.width][app.height];
 
         app.fill(color.getRed(), color.getGreen(), color.getBlue());
-        Vector screenSize = new Vector(app.width, app.height, 0);
-        Vector[] screenCoords = new Vector[mesh.vertices.length];
+        Vector2 screenSize = new Vector2(app.width, app.height);
+        Vector2[] screenCoords = new Vector2[mesh.vertices.length];
         for(int i = 0; i < mesh.vertices.length; i++){
             Vector v = mesh.vertices[i];
-            screenCoords[i] = Transformer.wsToss(v.c(), screenSize);
+            screenCoords[i] = Transformer.wsToss((Vector3) v.c(), screenSize);
         }
         if(renderMode == RenderMode.wireframe) {
             for (int i = 0; i < mesh.edges.length; i += 2) {
-                Vector p1 = screenCoords[mesh.edges[i]];
-                Vector p2 = screenCoords[mesh.edges[i + 1]];
+                Vector2 p1 = screenCoords[mesh.edges[i]];
+                Vector2 p2 = screenCoords[mesh.edges[i + 1]];
                 app.line(p1.x, p1.y, p2.x, p2.y);
             }
         }else {
             for (int i = 0; i < mesh.faces.length; i += 3) {
-                Vector p1 = screenCoords[mesh.faces[i]];
-                Vector p2 = screenCoords[mesh.faces[i + 1]];
-                Vector p3 = screenCoords[mesh.faces[i + 2]];
+                Vector2 p1 = screenCoords[mesh.faces[i]];
+                Vector2 p2 = screenCoords[mesh.faces[i + 1]];
+                Vector2 p3 = screenCoords[mesh.faces[i + 2]];
 
-                Vector pws1 = mesh.vertices[mesh.faces[i]];
-                Vector pws2 = mesh.vertices[mesh.faces[i + 1]];
-                Vector pws3 = mesh.vertices[mesh.faces[i + 2]];
+                Vector3 pws1 = mesh.vertices[mesh.faces[i]];
+                Vector3 pws2 = mesh.vertices[mesh.faces[i + 1]];
+                Vector3 pws3 = mesh.vertices[mesh.faces[i + 2]];
 
                 Vector normal = p2.c().sub(p1).cross(p3.c().sub(p1)).normalize();
-                Vector normalws = pws2.c().sub(pws1).cross(pws3.c().sub(pws1)).normalize();
+                Vector normalws = ((Vector3) pws2.c().sub(pws1)).cross((Vector3) pws3.c().sub(pws1)).normalize();
 
                 if(normal.dot(dir) < 0){//back face culling. positive means facing the same way as camera thus not facing it
 
@@ -78,39 +78,34 @@ public class Camera {
         color = c;
     }
 
-    void draw(Vector v){
-        Vector v2 = Transformer.wsToss(v.c(), new Vector(app.width, app.height, 0));
+    void draw(Vector3 v){
+        Vector2 v2 = Transformer.wsToss((Vector3) v.c(), new Vector2(app.width, app.height));
         app.fill(color.getRed(), color.getGreen(), color.getBlue());
-        app.rect(v2.x - 5,v2.y - 5,10,10);
-//        app.pixels[(int)v2.y * app.width + (int)v2.x] = app.color();
+        app.rect(v2.x - 5,v2.y - 5,10,10);;
     }
 
     void draw(Vector from, Vector dir){
-        Vector screensize = new Vector(app.width, app.height, 0);
-        Vector from2 = Transformer.wsToss(from.c(), screensize);
-        Vector dir2 = Transformer.wsToss(dir.c(), screensize);
+        Vector2 screensize = new Vector2(app.width, app.height);
+        Vector2 from2 = Transformer.wsToss((Vector3) from.c(), screensize);
+        Vector2 dir2 = Transformer.wsToss((Vector3) dir.c(), screensize);
         app.line(from2.x, from2.y, dir2.x, dir2.y);
     }
 
-    void triangle(Vector a, Vector b, Vector c, int[][] zbuffer, Mesh mesh){
-        Vector[] vers = {a,b,c};
-        Arrays.sort(vers, new Comparator<Vector>() {
-            public int compare(Vector a, Vector b) {
-                return (int)a.y - (int)b.y;
-            }
-        });
+    void triangle(Vector2 a, Vector2 b, Vector2 c, int[][] zbuffer, Mesh mesh){
+        Vector2[] vers = {a,b,c};
+        Arrays.sort(vers, (a1, b1) -> (int) a1.y - (int) b1.y);
 
 
         if(vers[0].y == vers[1].y){
             if(vers[1].x < vers[0].x){//swap
-                Vector temp = vers[0];
+                Vector2 temp = vers[0];
                 vers[0] = vers[1];
                 vers[1] = temp;
             }
             flatTop(vers[0], vers[1], vers[2], zbuffer, mesh);
         }else if(vers[1].y == vers[2].y){
             if(vers[2].x < vers[1].x){//swap
-                Vector temp = vers[2];
+                Vector2 temp = vers[2];
                 vers[2] = vers[1];
                 vers[1] = temp;
             }
@@ -153,7 +148,7 @@ public class Camera {
     }
 
     private void drawPixel(Vector a, Vector b, Vector c, int[][] zbuffer, Mesh mesh, int x, int y){
-        Vector bary = RayCaster.barycenter(a,b,c,new Vector(x,y,2.5f));
+        Vector bary = RayCaster.barycenter2(a,b,c,new Vector(x,y,2.5f));
         Vector auv = new Vector(a.u, a.v, 0);
         Vector buv = new Vector(b.u, b.v, 0);
         Vector cuv = new Vector(c.u, c.v, 0);
@@ -166,7 +161,7 @@ public class Camera {
 
 
     // b and c are bottom and and b is the left of those
-    void flatBot(Vector a, Vector b, Vector c, int[][] zbuffer, Mesh mesh){
+    void flatBot(Vector3 a, Vector3 b, Vector3 c, int[][] zbuffer, Mesh mesh){
         float m0 = (b.x - a.x) / (b.y - a.y);
         float m1 = (c.x - a.x) / (c.y - a.y);
 

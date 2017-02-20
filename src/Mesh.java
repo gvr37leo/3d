@@ -1,7 +1,7 @@
 import Image.Image;
 
 public class Mesh {
-    Vector[] vertices;
+    Vector3[] vertices;
     int[] edges;
     int[] faces;
     Image texture;
@@ -9,10 +9,10 @@ public class Mesh {
     static Mesh generateTriangle(){
         Mesh triangle = new Mesh();
         float f = 0.5f;
-        triangle.vertices = new Vector[]{
-                new Vector(0,1,0),
-                new Vector(1,-1,0),
-                new Vector(-1,-1,0),
+        triangle.vertices = new Vector3[]{
+                new Vector3(0,1,0),
+                new Vector3(1,-1,0),
+                new Vector3(-1,-1,0),
         };
         triangle.edges = new int[]{
             0,1, 1,2, 2,0
@@ -26,16 +26,16 @@ public class Mesh {
     static Mesh generateCube(){
         float f = 0.5f;
         Mesh cube = new Mesh();
-        cube.vertices = new Vector[]{
-                new Vector(-f,f,f,0,0),
-                new Vector(f,f,f,1,0),
-                new Vector(f,f,-f,1,1),
-                new Vector(-f,f,-f,0,1),
+        cube.vertices = new Vector3[]{
+                new Vector3(-f,f,f),
+                new Vector3(f,f,f),
+                new Vector3(f,f,-f),
+                new Vector3(-f,f,-f),
 
-                new Vector(-f,-f,f,0,0),
-                new Vector(f,-f,f,1,0),
-                new Vector(f,-f,-f,1,1),
-                new Vector(-f,-f,-f,0,1),
+                new Vector3(-f,-f,f),
+                new Vector3(f,-f,f),
+                new Vector3(f,-f,-f),
+                new Vector3(-f,-f,-f),
         };
         cube.edges = new int[]{
                 0,1,  1,2,  2,3,  3,0,
@@ -57,15 +57,15 @@ public class Mesh {
         return cube;
     }
 
-    Mesh rot(Vector v){
+    Mesh rot(Vector3 v){
         Matrix m = Matrix.rotX(v.x).mult(Matrix.rotY(v.y)).mult(Matrix.rotZ(v.z));
-        for(Vector vertex : vertices){
+        for(Vector3 vertex : vertices){
             m.mult(vertex);
         }
         return this;
     }
 
-    Mesh add(Vector v){
+    Mesh add(Vector3 v){
         for(Vector vertex : vertices)vertex.add(v);
         return this;
     }

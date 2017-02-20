@@ -1,42 +1,25 @@
-import java.security.PublicKey;
+public abstract class Vector{
+    int dimensions;
 
-public class Vector {
-    float x;
-    float y;
-    float z;
-    float u;
-    float v;
-
-    Vector(){
-        for(int i = 0; i < 3; i++)set(i, 0);
-    }
-
-    Vector(float x, float y, float z){
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-
-    Vector(float x, float y, float z, float u, float v){
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.u = u;
-        this.v = v;
+    public static Vector construct(int dimensions){
+        switch(dimensions){
+            case 3:return new Vector3(0,0,0);
+            default:return new Vector2(0,0);
+        }
     }
 
     public Vector add(Vector v){
-        for(int i = 0; i < 3; i++)set(i, get(i) + v.get(i));
+        iterate((i) -> set(i, get(i) + v.get(i)));
         return this;
     }
 
     public Vector sub(Vector v){
-        for(int i = 0; i < 3; i++)set(i, get(i) - v.get(i));
+        iterate((i) -> set(i, get(i) - v.get(i)));
         return this;
     }
 
     public Vector scale(float s){
-        for(int i = 0; i < 3; i++)set(i, get(i) * s);
+        iterate((i) -> set(i, get(i) * s));
         return this;
     }
 
@@ -45,15 +28,9 @@ public class Vector {
     }
 
     public float dot(Vector v){
-        return x * v.x + y * v.y + z * v.z;
-    }
-
-    public Vector cross(Vector v){
-        return new Vector(
-                y * v.z - z * v.y,
-                z * v.x - x * v.z,
-                x * v.y - y * v.x
-        );
+        float sum = 0;
+        for(int i = 0; i < dimensions; i++)sum += get(i) + v.get(i);
+        return sum;
     }
 
     public Vector project(Vector v){
@@ -61,7 +38,9 @@ public class Vector {
     }
 
     public float length(){
-        return (float)Math.pow(x*x + y*y + z*z, 0.5);
+        float sum = 0;
+        for(int i = 0; i < dimensions; i++)sum += get(i) * get(i);
+        return (float) Math.sqrt(sum);
     }
 
     public Vector normalize(){
@@ -69,12 +48,50 @@ public class Vector {
     }
 
     public Vector c(){
-        return new Vector(x, y, z);
+        Vector c = Vector.construct(dimensions);
+        return iterate((i) -> c.set(i, get(i)));
     }
 
-    public Vector write(Vector v){
-        for(int i = 0; i < 3; i++)set(i, v.get(i));
+    public Vector overwrite(Vector v){
+        return iterate((i) -> set(i, v.get(i)));
+    }
+
+    public Vector iterate(Iterator iterator){
+        for(int i = 0; i < dimensions; i++)iterator.iterate(i);
         return this;
+    }
+
+    interface Iterator{
+        void iterate(int i);
+    }
+
+    public abstract float get(int i);
+
+    public abstract void set(int i, float val);
+
+    public boolean equals(Vector v){
+        for(int i = 0; i < 3; i++)if(get(i) != v.get(i)) return false;
+        return true;
+    }
+}
+
+class Vector3 extends Vector{
+    float x;
+    float y;
+    float z;
+
+    Vector3(float x, float y, float z){
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.dimensions = 3;
+    }
+
+    Vector3(){
+        this.x = 0;
+        this.y = 0;
+        this.z = 0;
+        this.dimensions = 3;
     }
 
     public float get(int i){
@@ -95,7 +112,37 @@ public class Vector {
         }
     }
 
-    public boolean equals(Vector v){
-        return x == v.x && y == v.y && z == v.z;
+    public Vector3 cross(Vector3 v){
+        return new Vector3(
+                y * v.z - z * v.y,
+                z * v.x - x * v.z,
+                x * v.y - y * v.x
+        );
+    }
+}
+
+class Vector2 extends Vector{
+    float x;
+    float y;
+
+    Vector2(float x, float y){
+        this.x = x;
+        this.y = y;
+        this.dimensions = 3;
+    }
+
+    public float get(int i){
+        switch (i){
+            case 1:return y;
+            default: return x;
+        }
+    }
+
+    public void set(int i, float val){
+        switch (i){
+            case 1:y = val;
+                break;
+            default: x = val;
+        }
     }
 }

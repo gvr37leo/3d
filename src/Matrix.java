@@ -36,7 +36,7 @@ public class Matrix {
         });
     }
 
-    Vector mult(Vector lhs){
+    Vector mult(Vector3 lhs){
         float xp = lhs.x * els[0][0] + lhs.y * els[1][0] + lhs.z * els[2][0];
         float yp = lhs.x * els[0][1] + lhs.y * els[1][1] + lhs.z * els[2][1];
         float zp = lhs.x * els[0][2] + lhs.y * els[1][2] + lhs.z * els[2][2];

@@ -11,41 +11,41 @@ public class Main extends PApplet{
     float rotationSpeed = 4;
     HashMap<Character, Boolean> keyMap = new HashMap<Character, Boolean>();
     float dt = 1.0f / 60;
-    Vector rot = new Vector(0, 0, 0);
-    Vector translation = new Vector();
-    private Vector screensize;
+    Vector3 rot = new Vector3(0, 0, 0);
+    Vector3 translation = new Vector3(0,0,0);
+    private Vector2 screensize;
 
     public void settings(){
         size(500, 500);
     }
 
     public void setup(){
-        screensize = new Vector(width, height, 0);
+        screensize = new Vector2(width, height);
         noStroke();
     }
 
     public void draw(){
         clear();
         loadPixels();
-        if(keyMap.get('w') != null && keyMap.get('w')) rot.add(new Vector(1,0,0).scale(rotationSpeed).scale(dt));
-        if(keyMap.get('s') != null && keyMap.get('s')) rot.add(new Vector(-1,0,0).scale(rotationSpeed).scale(dt));
-        if(keyMap.get('a') != null && keyMap.get('a')) rot.add(new Vector(0,-1,0).scale(rotationSpeed).scale(dt));
-        if(keyMap.get('d') != null && keyMap.get('d')) rot.add(new Vector(0,1,0).scale(rotationSpeed).scale(dt));
-        if(keyMap.get('q') != null && keyMap.get('q')) rot.add(new Vector(0,0,1).scale(rotationSpeed).scale(dt));
-        if(keyMap.get('e') != null && keyMap.get('e')) rot.add(new Vector(0,0,-1).scale(rotationSpeed).scale(dt));
-        if(keyMap.get('r') != null && keyMap.get('r'))translation.add(new Vector(0,0,-1).scale(dt));
-        if(keyMap.get('f') != null && keyMap.get('f'))translation.add(new Vector(0,0,1).scale(dt));
+        if(keyMap.get('w') != null && keyMap.get('w')) rot.add(new Vector3(1,0,0).scale(rotationSpeed).scale(dt));
+        if(keyMap.get('s') != null && keyMap.get('s')) rot.add(new Vector3(-1,0,0).scale(rotationSpeed).scale(dt));
+        if(keyMap.get('a') != null && keyMap.get('a')) rot.add(new Vector3(0,-1,0).scale(rotationSpeed).scale(dt));
+        if(keyMap.get('d') != null && keyMap.get('d')) rot.add(new Vector3(0,1,0).scale(rotationSpeed).scale(dt));
+        if(keyMap.get('q') != null && keyMap.get('q')) rot.add(new Vector3(0,0,1).scale(rotationSpeed).scale(dt));
+        if(keyMap.get('e') != null && keyMap.get('e')) rot.add(new Vector3(0,0,-1).scale(rotationSpeed).scale(dt));
+        if(keyMap.get('r') != null && keyMap.get('r'))translation.add(new Vector3(0,0,-1).scale(dt));
+        if(keyMap.get('f') != null && keyMap.get('f'))translation.add(new Vector3(0,0,1).scale(dt));
 
         mesh = Mesh.generateCube();
         mesh.rot(rot);
         mesh.add(translation);
-        mesh.add(new Vector(0,0,3));
+        mesh.add(new Vector3(0,0,3));
         camera.draw(mesh);
 
         updatePixels();
         camera.color = Color.red;
 
-        Vector intersect = RayCaster.rayTriangle(new Vector(), Transformer.ssTows(new Vector(mouseX, mouseY, 0), screensize),
+        Vector3 intersect = RayCaster.rayTriangle(new Vector3(0,0,0), Transformer.ssTows(new Vector2(mouseX, mouseY), screensize),
                 mesh.vertices[4],
                 mesh.vertices[6],
                 mesh.vertices[5]
@@ -59,7 +59,7 @@ public class Main extends PApplet{
 
     public void keyPressed(KeyEvent event) {
         keyMap.put(event.getKey(), true);
-        if(event.getKey() == 't')rot = new Vector();
+        if(event.getKey() == 't')rot = new Vector3();
     }
 
     public void keyReleased(KeyEvent event) {
