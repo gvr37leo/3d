@@ -1,4 +1,4 @@
-public abstract class Vector{
+public abstract class Vector <T extends Vector<T>>{
     int dimensions;
 
     public static Vector construct(int dimensions){
@@ -8,33 +8,33 @@ public abstract class Vector{
         }
     }
 
-    public Vector add(Vector v){
+    public T add(T v){
         iterate((i) -> set(i, get(i) + v.get(i)));
-        return this;
+        return (T)this;
     }
 
-    public Vector sub(Vector v){
+    public T sub(T v){
         iterate((i) -> set(i, get(i) - v.get(i)));
-        return this;
+        return (T)this;
     }
 
-    public Vector scale(float s){
+    public T scale(float s){
         iterate((i) -> set(i, get(i) * s));
-        return this;
+        return (T)this;
     }
 
-    public Vector lerp(Vector v, float weight){
-        return c().add(v.c().sub(this).scale(weight));
+    public T lerp(T v, float weight){
+        return c().add(v.c().sub((T)this).scale(weight));
     }
 
-    public float dot(Vector v){
+    public float dot(T v){
         float sum = 0;
         for(int i = 0; i < dimensions; i++)sum += get(i) + v.get(i);
         return sum;
     }
 
-    public Vector project(Vector v){
-        return this.c().scale(this.dot(v) / this.dot(this));
+    public T project(T v){
+        return this.c().scale(this.dot(v) / this.dot((T)this));
     }
 
     public float length(){
@@ -43,13 +43,13 @@ public abstract class Vector{
         return (float) Math.sqrt(sum);
     }
 
-    public Vector normalize(){
+    public T normalize(){
         return scale(1 / length());
     }
 
-    public Vector c(){
-        Vector c = Vector.construct(dimensions);
-        return iterate((i) -> c.set(i, get(i)));
+    public T c(){
+        T c = (T)Vector.construct(dimensions);
+        return (T)iterate((i) -> c.set(i, get(i)));
     }
 
     public Vector overwrite(Vector v){
@@ -69,13 +69,13 @@ public abstract class Vector{
 
     public abstract void set(int i, float val);
 
-    public boolean equals(Vector v){
+    public boolean equals(T v){
         for(int i = 0; i < 3; i++)if(get(i) != v.get(i)) return false;
         return true;
     }
 }
 
-class Vector3 extends Vector{
+class Vector3 extends Vector<Vector3>{
     float x;
     float y;
     float z;
@@ -121,7 +121,7 @@ class Vector3 extends Vector{
     }
 }
 
-class Vector2 extends Vector{
+class Vector2 extends Vector<Vector2>{
     float x;
     float y;
 

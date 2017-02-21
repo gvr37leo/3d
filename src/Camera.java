@@ -37,8 +37,8 @@ public class Camera {
         Vector2 screenSize = new Vector2(app.width, app.height);
         Vector2[] screenCoords = new Vector2[mesh.vertices.length];
         for(int i = 0; i < mesh.vertices.length; i++){
-            Vector v = mesh.vertices[i];
-            screenCoords[i] = Transformer.wsToss((Vector3) v.c(), screenSize);
+            Vector3 v = mesh.vertices[i];
+            screenCoords[i] = Transformer.wsToss(v.c(), screenSize);
         }
         if(renderMode == RenderMode.wireframe) {
             for (int i = 0; i < mesh.edges.length; i += 2) {
@@ -57,7 +57,7 @@ public class Camera {
                 Vector3 pws3 = mesh.vertices[mesh.faces[i + 2]];
 
                 Vector normal = p2.c().sub(p1).cross(p3.c().sub(p1)).normalize();
-                Vector normalws = ((Vector3) pws2.c().sub(pws1)).cross((Vector3) pws3.c().sub(pws1)).normalize();
+                Vector normalws = (pws2.c().sub(pws1)).cross(pws3.c().sub(pws1)).normalize();
 
                 if(normal.dot(dir) < 0){//back face culling. positive means facing the same way as camera thus not facing it
 
@@ -79,15 +79,15 @@ public class Camera {
     }
 
     void draw(Vector3 v){
-        Vector2 v2 = Transformer.wsToss((Vector3) v.c(), new Vector2(app.width, app.height));
+        Vector2 v2 = Transformer.wsToss(v.c(), new Vector2(app.width, app.height));
         app.fill(color.getRed(), color.getGreen(), color.getBlue());
         app.rect(v2.x - 5,v2.y - 5,10,10);;
     }
 
-    void draw(Vector from, Vector dir){
+    void draw(Vector3 from, Vector3 dir){
         Vector2 screensize = new Vector2(app.width, app.height);
-        Vector2 from2 = Transformer.wsToss((Vector3) from.c(), screensize);
-        Vector2 dir2 = Transformer.wsToss((Vector3) dir.c(), screensize);
+        Vector2 from2 = Transformer.wsToss( from.c(), screensize);
+        Vector2 dir2 = Transformer.wsToss( dir.c(), screensize);
         app.line(from2.x, from2.y, dir2.x, dir2.y);
     }
 
