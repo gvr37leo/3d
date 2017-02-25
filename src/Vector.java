@@ -49,10 +49,11 @@ public abstract class Vector <T extends Vector<T>>{
         return scale(1 / length());
     }
 
-    public T c(){
-        T c = (T)Vector.construct(dimensions);
-        return iterate((i) -> c.set(i, get(i)));
-    }
+//    public T c(){
+//        T c = (T)Vector.construct(dimensions);
+//        return iterate((i) -> c.set(i, get(i)));
+//    }
+    public abstract T c();
 
     public T overwrite(Vector v){
         return iterate((i) -> set(i, v.get(i)));
@@ -106,29 +107,41 @@ class Vector2 extends Vector<Vector2>{
     public Vector2 This() {
         return this;
     }
+
+    public Vector2 c() {
+        return new Vector2(x,y);
+    }
 }
 
 
-class Vector3 extends Vector2{
+class Vector3 extends Vector<Vector3>{
+    float x;
+    float y;
     float z;
 
     Vector3(float x, float y, float z){
-        super(x,y);
+        this.x = x;
+        this.y = y;
         this.z = z;
         this.dimensions = 3;
     }
 
     public float get(int i){
-        if(i == 2)return z;
-        return super.get(i);
+        switch (i){
+            case 1:return y;
+            case 2:return z;
+            default: return x;
+        }
     }
 
     public void set(int i, float val){
-        if(i == 2){
-            z = val;
-            return;
+        switch (i){
+            case 1:y = val;
+                break;
+            case 2:z = val;
+                break;
+            default: x = val;
         }
-        super.set(i, val);
     }
 
     public Vector3 cross(Vector3 v){
@@ -137,5 +150,13 @@ class Vector3 extends Vector2{
                 z * v.x - x * v.z,
                 x * v.y - y * v.x
         );
+    }
+
+    public Vector3 c(){
+        return new Vector3(x,y,z);
+    }
+
+    public Vector3 This() {
+        return this;
     }
 }

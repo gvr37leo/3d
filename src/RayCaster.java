@@ -15,10 +15,10 @@ public class RayCaster {
         return null;
     }
 
-    static public Vector3 barycenter(Vector3 a, Vector3 b, Vector3 c, Vector3 p){
-        Vector ab = b.c().sub(a);
-        Vector ac = c.c().sub(a);
-        Vector ap = p.c().sub(a);
+    static public <T extends Vector<T>> Vector3 barycenter(T a, T b, T c, T p){
+        T ab = b.c().sub(a);
+        T ac = c.c().sub(a);
+        T ap = p.c().sub(a);
 
         float dot00 = ac.dot(ac);
         float dot01 = ac.dot(ab);
@@ -27,10 +27,10 @@ public class RayCaster {
         float dot12 = ab.dot(ap);
 
         float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-        float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-        float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-
-        return new Vector3(u,v,1-(u+v));
+        float v = (dot11 * dot02 - dot01 * dot12) * invDenom;
+        float w = (dot00 * dot12 - dot01 * dot02) * invDenom;
+        float u = 1-v-w;
+        return new Vector3(u,v,w);
 
     }
 
@@ -55,8 +55,8 @@ public class RayCaster {
     }
 
 //    https://www.youtube.com/watch?v=fIu_8b2n8ZM&t=174s
-    static public Vector3 rayPlane(Vector3 from, Vector dir, Vector normal, Vector pos){
-        Vector w = pos.c().sub(from);
+    static public Vector3 rayPlane(Vector3 from, Vector3 dir, Vector3 normal, Vector3 pos){
+        Vector3 w = pos.c();
         float ratio = w.dot(normal) / dir.dot(normal);
         return (Vector3) from.c().add(dir.c().scale(ratio));
     }

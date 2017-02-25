@@ -8,8 +8,8 @@ enum ViewMode {orthogonal, perspective}
 enum RenderMode {solid, wireframe}
 
 public class Camera {
-    Vector lightDir = new Vector3(0,0,1).normalize();
-    Vector dir = new Vector3(0,0,-1);
+    Vector3 lightDir = new Vector3(0,0,1).normalize();
+    Vector3 dir = new Vector3(0,0,-1);
     ViewMode viewMode = ViewMode.orthogonal;
     RenderMode renderMode = RenderMode.solid;
     PApplet app;
@@ -56,12 +56,12 @@ public class Camera {
                 Vector3 pws2 = mesh.vertices[mesh.faces[i + 1]];
                 Vector3 pws3 = mesh.vertices[mesh.faces[i + 2]];
 
-                Vector normal = p2.c().sub(p1).cross(p3.c().sub(p1)).normalize();
-                Vector normalws = (pws2.c().sub(pws1)).cross(pws3.c().sub(pws1)).normalize();
+//                Vector2 normal = p2.c().sub(p1).cross(p3.c().sub(p1)).normalize();
+                Vector3 normal = pws2.c().sub(pws1).cross(pws3.c().sub(pws1)).normalize();
 
                 if(normal.dot(dir) < 0){//back face culling. positive means facing the same way as camera thus not facing it
 
-                    float lightIntensity = normalws.dot(lightDir);
+                    float lightIntensity = 0.5f;//normal.dot(lightDir);
                     color = new Color(
                             Math.abs(lightIntensity),
                             Math.abs(lightIntensity),
@@ -112,10 +112,11 @@ public class Camera {
             flatBot(vers[0], vers[1], vers[2], zbuffer, mesh);
         }else{
             float weight = (vers[1].y - vers[0].y) / (vers[2].y - vers[0].y);
-            Vector split = vers[0].lerp(vers[2], weight);
-            Vector uvlerped = new Vector(vers[0].u,vers[0].v,0).lerp(new Vector(vers[2].u, vers[2].v, 0), weight);
-            split.u = uvlerped.x;
-            split.v = uvlerped.y;
+            Vector2 split = vers[0].lerp(vers[2], weight);
+//            split.
+//            Vector uvlerped = new Vector(vers[0].u,vers[0].v,0).lerp(new Vector(vers[2].u, vers[2].v, 0), weight);
+//            split.u = uvlerped.x;
+//            split.v = uvlerped.y;
             if(vers[1].x < split.x){
                 flatBot(vers[0], vers[1], split, zbuffer, mesh);
                 flatTop(vers[1], split, vers[2], zbuffer, mesh);
@@ -128,7 +129,7 @@ public class Camera {
     }
 
     //0 and 1 are tops and 0 is the left of those
-    void flatTop(Vector a, Vector b, Vector c, int[][] zbuffer, Mesh mesh){
+    void flatTop(Vector2 a, Vector2 b, Vector2 c, int[][] zbuffer, Mesh mesh){
         float m0 = (c.x - a.x) / (c.y - a.y);
         float m1 = (c.x - b.x) / (c.y - b.y);
 
@@ -147,21 +148,21 @@ public class Camera {
         }
     }
 
-    private void drawPixel(Vector a, Vector b, Vector c, int[][] zbuffer, Mesh mesh, int x, int y){
-        Vector bary = RayCaster.barycenter2(a,b,c,new Vector(x,y,2.5f));
-        Vector auv = new Vector(a.u, a.v, 0);
-        Vector buv = new Vector(b.u, b.v, 0);
-        Vector cuv = new Vector(c.u, c.v, 0);
-        Vector uv = auv.scale(bary.x).add(buv.scale(bary.y)).add(cuv.scale(bary.z));
-
-        color = mesh.texture.getPixel(uv.x, uv.y).toAWTColor();
+    private void drawPixel(Vector2 a, Vector2 b, Vector2 c, int[][] zbuffer, Mesh mesh, int x, int y){
+        Vector bary = RayCaster.barycenter(a,b,c,new Vector2(x,y));
+//        Vector auv = new Vector(a.u, a.v, 0);
+//        Vector buv = new Vector(b.u, b.v, 0);
+//        Vector cuv = new Vector(c.u, c.v, 0);
+//        Vector uv = auv.scale(bary.x).add(buv.scale(bary.y)).add(cuv.scale(bary.z));
+//
+//        color = mesh.texture.getPixel(uv.x, uv.y).toAWTColor();
 //        color = Color.blue;
         setPixel(x,y);
     }
 
 
     // b and c are bottom and and b is the left of those
-    void flatBot(Vector3 a, Vector3 b, Vector3 c, int[][] zbuffer, Mesh mesh){
+    void flatBot(Vector2 a, Vector2 b, Vector2 c, int[][] zbuffer, Mesh mesh){
         float m0 = (b.x - a.x) / (b.y - a.y);
         float m1 = (c.x - a.x) / (c.y - a.y);
 
