@@ -1,41 +1,59 @@
 import Image.Image;
 
 public class Mesh {
-    Vector3[] vertices;
+    Vec3f[] vertices;
     int[] edges;
     int[] faces;
+    Vec2f[] uvs;
     Image texture;
 
     static Mesh generateTriangle(){
         Mesh triangle = new Mesh();
         float f = 0.5f;
-        triangle.vertices = new Vector3[]{
-                new Vector3(0,1,0),
-                new Vector3(1,-1,0),
-                new Vector3(-1,-1,0),
+        triangle.vertices = new Vec3f[]{
+                new Vec3f(0,1,0),
+                new Vec3f(1,-1,0),
+                new Vec3f(-1,-1,0),
+        };
+        triangle.uvs = new Vec2f[]{
+                new Vec2f(0.5f,0),
+                new Vec2f(1,1),
+                new Vec2f(0,1),
         };
         triangle.edges = new int[]{
-            0,1, 1,2, 2,0
+                0,1, 1,2, 2,0
         };
         triangle.faces = new int[]{
-            0,1,2
+                0,1,2
         };
+        triangle.texture = Image.fromImage("textures/crate.png");
         return triangle;
     }
 
     static Mesh generateCube(){
         float f = 0.5f;
         Mesh cube = new Mesh();
-        cube.vertices = new Vector3[]{
-                new Vector3(-f,f,f),
-                new Vector3(f,f,f),
-                new Vector3(f,f,-f),
-                new Vector3(-f,f,-f),
+        cube.vertices = new Vec3f[]{
+                new Vec3f(-f,f,f),
+                new Vec3f(f,f,f),
+                new Vec3f(f,f,-f),
+                new Vec3f(-f,f,-f),
 
-                new Vector3(-f,-f,f),
-                new Vector3(f,-f,f),
-                new Vector3(f,-f,-f),
-                new Vector3(-f,-f,-f),
+                new Vec3f(-f,-f,f),
+                new Vec3f(f,-f,f),
+                new Vec3f(f,-f,-f),
+                new Vec3f(-f,-f,-f),
+        };
+        cube.uvs = new Vec2f[]{
+                new Vec2f(0,0),
+                new Vec2f(1,0),
+                new Vec2f(1,1),
+                new Vec2f(0,1),
+
+                new Vec2f(0,1),
+                new Vec2f(1,1),
+                new Vec2f(1,0),
+                new Vec2f(0,0),
         };
         cube.edges = new int[]{
                 0,1,  1,2,  2,3,  3,0,
@@ -52,21 +70,20 @@ public class Mesh {
 
                 4,7,6, 4,6,5
         };
-//        cube.texture = new Image("textures/crate.png");
-        cube.texture = Image.fromImage("textures/crate.png");
+        cube.texture = Image.fromImage("textures/test.png");
         return cube;
     }
 
-    Mesh rot(Vector3 v){
+    Mesh rot(Vec3f v){
         Matrix m = Matrix.rotX(v.x).mult(Matrix.rotY(v.y)).mult(Matrix.rotZ(v.z));
-        for(Vector3 vertex : vertices){
+        for(Vec3f vertex : vertices){
             m.mult(vertex);
         }
         return this;
     }
 
-    Mesh add(Vector3 v){
-        for(Vector vertex : vertices)vertex.add(v);
+    Mesh add(Vec3f v){
+        for(Vec3f vertex : vertices)vertex.add(v);
         return this;
     }
 }

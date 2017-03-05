@@ -1,11 +1,10 @@
-public abstract class Vector <T extends Vector<T>>{
+public abstract class Vecf<T extends Vecf<T>>{
     int dimensions;
-    private static float sum;
 
-    public static Vector construct(int dimensions){
+    public static Vecf construct(int dimensions){
         switch(dimensions){
-            case 3:return new Vector3(0,0,0);
-            default:return new Vector2(0,0);
+            case 3:return new Vec3f(0,0,0);
+            default:return new Vec2f(0,0);
         }
     }
 
@@ -26,8 +25,8 @@ public abstract class Vector <T extends Vector<T>>{
     }
 
     public float dot(T v){
-        sum = 0;
-        iterate((i) -> sum += get(i) + v.get(i));
+        float sum = 0;
+        for(int i = 0; i < dimensions; i++)sum += get(i) * v.get(i);
         return sum;
     }
 
@@ -36,26 +35,22 @@ public abstract class Vector <T extends Vector<T>>{
     }
 
     public float length(){
-        return (float) Math.sqrt(lengthSq());
-    }
-
-    public float lengthSq(){
-        sum = 0;
-        iterate((i) -> sum += get(i) * get(i));
-        return sum;
+        float sum = 0;
+        for(int i = 0; i < dimensions; i++)sum += get(i) * get(i);
+        return (float) Math.sqrt(sum);
     }
 
     public T normalize(){
         return scale(1 / length());
     }
 
-//    public T c(){
-//        T c = (T)Vector.construct(dimensions);
-//        return iterate((i) -> c.set(i, get(i)));
-//    }
-    public abstract T c();
+    public T c(){
+        T c = (T) Vecf.construct(dimensions);
+        iterate((i) -> c.set(i, get(i)));
+        return c;
+    }
 
-    public T overwrite(Vector v){
+    public Vecf overwrite(Vecf v){
         return iterate((i) -> set(i, v.get(i)));
     }
 
@@ -71,6 +66,7 @@ public abstract class Vector <T extends Vector<T>>{
     public abstract float get(int i);
     public abstract void set(int i, float val);
     public abstract T This();
+    public abstract float det(T v);
 
     public boolean equals(T v){
         for(int i = 0; i < 3; i++)if(get(i) != v.get(i)) return false;
@@ -78,51 +74,22 @@ public abstract class Vector <T extends Vector<T>>{
     }
 }
 
-
-class Vector2 extends Vector<Vector2>{
-    float x;
-    float y;
-
-    Vector2(float x, float y){
-        this.x = x;
-        this.y = y;
-        this.dimensions = 3;
-    }
-
-    public float get(int i){
-        switch (i){
-            case 1:return y;
-            default: return x;
-        }
-    }
-
-    public void set(int i, float val){
-        switch (i){
-            case 1:y = val;
-                break;
-            default: x = val;
-        }
-    }
-
-    public Vector2 This() {
-        return this;
-    }
-
-    public Vector2 c() {
-        return new Vector2(x,y);
-    }
-}
-
-
-class Vector3 extends Vector<Vector3>{
+class Vec3f extends Vecf<Vec3f> {
     float x;
     float y;
     float z;
 
-    Vector3(float x, float y, float z){
+    Vec3f(float x, float y, float z){
         this.x = x;
         this.y = y;
         this.z = z;
+        this.dimensions = 3;
+    }
+
+    Vec3f(){
+        this.x = 0;
+        this.y = 0;
+        this.z = 0;
         this.dimensions = 3;
     }
 
@@ -144,19 +111,53 @@ class Vector3 extends Vector<Vector3>{
         }
     }
 
-    public Vector3 cross(Vector3 v){
-        return new Vector3(
+    public Vec3f This() {
+        return this;
+    }
+
+    public float det(Vec3f v) {
+        return cross(v).length();
+    }
+
+    public Vec3f cross(Vec3f v){
+        return new Vec3f(
                 y * v.z - z * v.y,
                 z * v.x - x * v.z,
                 x * v.y - y * v.x
         );
     }
+}
 
-    public Vector3 c(){
-        return new Vector3(x,y,z);
+class Vec2f extends Vecf<Vec2f> {
+    float x;
+    float y;
+
+    Vec2f(float x, float y){
+        this.x = x;
+        this.y = y;
+        this.dimensions = 2;
     }
 
-    public Vector3 This() {
+    public float get(int i){
+        switch (i){
+            case 1:return y;
+            default: return x;
+        }
+    }
+
+    public void set(int i, float val){
+        switch (i){
+            case 1:y = val;
+                break;
+            default: x = val;
+        }
+    }
+
+    public Vec2f This() {
         return this;
+    }
+
+    public float det(Vec2f v) {
+        return x * v.y - y * v.x;
     }
 }

@@ -77,6 +77,7 @@ public class Image {
     }
 
     public Color getPixel(float u, float v){
+        if(u > 1 || u < 0 || v > 1 || v < 0)return new Color((byte) 0, (byte) 0, (byte) 0, (byte) 255);
         int x = (int) ((size.x - 1 ) * u);
         int y = (int) ((size.y - 1 ) * v);
         int index = (y * size.x + x) * channels;

@@ -8,8 +8,10 @@ enum ViewMode {orthogonal, perspective}
 enum RenderMode {solid, wireframe}
 
 public class Camera {
-    Vector3 lightDir = new Vector3(0,0,1).normalize();
-    Vector3 dir = new Vector3(0,0,-1);
+
+    public int[][] zbuffer;
+    Vec3f lightDir = new Vec3f(0,0,1).normalize();
+    Vec3f dir = new Vec3f(0,0,1);
     ViewMode viewMode = ViewMode.orthogonal;
     RenderMode renderMode = RenderMode.solid;
     PApplet app;
@@ -28,161 +30,127 @@ public class Camera {
 
     Camera(PApplet app){
         this.app = app;
+        zbuffer = new int[app.width][app.height];
     }
 
-    void draw(Mesh mesh){
-        int[][] zbuffer = new int[app.width][app.height];
+    void draw(Mesh[] meshes){
+        for(int x = 0; x < app.width; x++){
+            for(int y = 0; y < app.height; y++){
+                zbuffer[x][y] = 255;
+            }
+        }
+        for(Mesh mesh: meshes)draw(mesh, zbuffer);
+    }
 
-        app.fill(color.getRed(), color.getGreen(), color.getBlue());
-        Vector2 screenSize = new Vector2(app.width, app.height);
-        Vector2[] screenCoords = new Vector2[mesh.vertices.length];
+    void draw(Mesh mesh, int[][] zbuffer){
+        Vec2i[] screenCoords = new Vec2i[mesh.vertices.length];
+        Vec2i screenSize = new Vec2i(app.width, app.height);
         for(int i = 0; i < mesh.vertices.length; i++){
-            Vector3 v = mesh.vertices[i];
+            Vec3f v = mesh.vertices[i];
             screenCoords[i] = Transformer.wsToss(v.c(), screenSize);
         }
-        if(renderMode == RenderMode.wireframe) {
-            for (int i = 0; i < mesh.edges.length; i += 2) {
-                Vector2 p1 = screenCoords[mesh.edges[i]];
-                Vector2 p2 = screenCoords[mesh.edges[i + 1]];
-                app.line(p1.x, p1.y, p2.x, p2.y);
+        for (int i = 0; i < mesh.faces.length; i += 3) {
+            Vec2i p1 = screenCoords[mesh.faces[i]];
+            Vec2i p2 = screenCoords[mesh.faces[i + 1]];
+            Vec2i p3 = screenCoords[mesh.faces[i + 2]];
+
+            Vec3f pws1 = mesh.vertices[mesh.faces[i]];
+            Vec3f pws2 = mesh.vertices[mesh.faces[i + 1]];
+            Vec3f pws3 = mesh.vertices[mesh.faces[i + 2]];
+
+            Vec2f uv1 = mesh.uvs[mesh.faces[i]];
+            Vec2f uv2 = mesh.uvs[mesh.faces[i + 1]];
+            Vec2f uv3 = mesh.uvs[mesh.faces[i + 2]];
+
+            Vec3f normalws = (pws2.c().sub(pws1)).cross(pws3.c().sub(pws1)).normalize();
+
+            int _i = i;
+            if(normalws.dot(pws1.c().sub(new Vec3f())) < 0){//back face culling. positive means facing the same way as camera thus not facing it
+                triangle(p1, p2, p3, zbuffer,(Vec2i pos) -> {
+                    float bary[] = RayCaster.barycenter(p1.toFloat(),p2.toFloat(),p3.toFloat(),pos.toFloat());
+//                    Vec2f uv = uv1.c().scale(bary[0]).add(uv2.c().scale(bary[1])).add(uv3.c().scale(bary[2]));
+//                    color = mesh.texture.getPixel(uv.x, uv.y).toAWTColor();
+                    float z = 0;
+                    for(int off = 0; off < 3; off++)z += mesh.vertices[mesh.faces[_i + off]].z * bary[off];
+                    int clampedz = clamp((int) PApplet.map(z,0,5,0,255),0,255);
+
+                    if(clampedz < zbuffer[pos.x][pos.y]){
+//                        color = normalColor(normalws,lightDir);
+                        zbuffer[pos.x][pos.y] = clampedz;
+                        color = clownColor(_i / 3);
+                        putPixel(pos.x, pos.y);
+                    }
+
+                });
             }
-        }else {
-            for (int i = 0; i < mesh.faces.length; i += 3) {
-                Vector2 p1 = screenCoords[mesh.faces[i]];
-                Vector2 p2 = screenCoords[mesh.faces[i + 1]];
-                Vector2 p3 = screenCoords[mesh.faces[i + 2]];
+        }
 
-                Vector3 pws1 = mesh.vertices[mesh.faces[i]];
-                Vector3 pws2 = mesh.vertices[mesh.faces[i + 1]];
-                Vector3 pws3 = mesh.vertices[mesh.faces[i + 2]];
 
-//                Vector2 normal = p2.c().sub(p1).cross(p3.c().sub(p1)).normalize();
-                Vector3 normal = pws2.c().sub(pws1).cross(pws3.c().sub(pws1)).normalize();
+    }
 
-                if(normal.dot(dir) < 0){//back face culling. positive means facing the same way as camera thus not facing it
+    public void triangle(Vec2i t0, Vec2i t1, Vec2i t2, int[][] zbuffer, ILocationGiver locationGiver){
+        Vec2i[] vs = {t0,t1,t2};
+        Arrays.sort(vs, Comparator.comparingInt(a -> a.y));
 
-                    float lightIntensity = 0.5f;//normal.dot(lightDir);
-                    color = new Color(
-                            Math.abs(lightIntensity),
-                            Math.abs(lightIntensity),
-                            Math.abs(lightIntensity));
-                    if(i == 6)color = Color.red;
-                    triangle(p1, p2, p3, zbuffer, mesh);
+        int total_height = vs[2].y-vs[0].y;
+
+        IFromToer fromToer = (Vec2i low, Vec2i heigh) -> {
+            for (int y = low.y; y <= heigh.y; y++) {
+                int segment_height = heigh.y-low.y;//+1
+                float alpha = (float)(y-vs[0].y) / total_height;
+                float beta  = (float)(y-low.y) / segment_height; // be careful with divisions by zero
+                Vec2i A = vs[0].lerp(vs[2],alpha);
+                Vec2i B = low.lerp(heigh,beta);
+                if (A.x>B.x){
+                    Vec2i temp = A;
+                    A = B;
+                    B = temp;
+                }
+                for(int x = A.x; x < B.x; x++){
+                    locationGiver.giveLocation((new Vec2i(x, y)));
                 }
             }
-        }
+        };
+
+        fromToer.fromTo(vs[0],vs[1]);
+        fromToer.fromTo(vs[1],vs[2]);
 
     }
-
-    void fill(Color c){
-        color = c;
+    interface IFromToer{
+        void fromTo(Vec2i low, Vec2i heigh);
+    }
+    
+    interface ILocationGiver{
+        void giveLocation(Vec2i pos);
     }
 
-    void draw(Vector3 v){
-        Vector2 v2 = Transformer.wsToss(v.c(), new Vector2(app.width, app.height));
-        app.fill(color.getRed(), color.getGreen(), color.getBlue());
-        app.rect(v2.x - 5,v2.y - 5,10,10);;
+    public void putPixel(int x, int y){
+        if(x >= app.width || x < 0 || y >= app.height || y < 0)return;
+        int index = y * (app.width) + x;
+        app.pixels[index] = app.color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
     }
 
-    void draw(Vector3 from, Vector3 dir){
-        Vector2 screensize = new Vector2(app.width, app.height);
-        Vector2 from2 = Transformer.wsToss( from.c(), screensize);
-        Vector2 dir2 = Transformer.wsToss( dir.c(), screensize);
-        app.line(from2.x, from2.y, dir2.x, dir2.y);
+    public Color baryColor(Vec2f a, Vec2f b, Vec2f c, Vec2f p){
+        float bary[] = RayCaster.barycenter(a,b,c,p);
+        int r = clamp((int)PApplet.map(bary[0],0,1,0,255),0,255);
+        int g = clamp((int)PApplet.map(bary[1],0,1,0,255),0,255);
+        int _b = clamp((int)PApplet.map(bary[2],0,1,0,255),0,255);
+        return new Color(r,g,_b);
     }
 
-    void triangle(Vector2 a, Vector2 b, Vector2 c, int[][] zbuffer, Mesh mesh){
-        Vector2[] vers = {a,b,c};
-        Arrays.sort(vers, (a1, b1) -> (int) a1.y - (int) b1.y);
-
-
-        if(vers[0].y == vers[1].y){
-            if(vers[1].x < vers[0].x){//swap
-                Vector2 temp = vers[0];
-                vers[0] = vers[1];
-                vers[1] = temp;
-            }
-            flatTop(vers[0], vers[1], vers[2], zbuffer, mesh);
-        }else if(vers[1].y == vers[2].y){
-            if(vers[2].x < vers[1].x){//swap
-                Vector2 temp = vers[2];
-                vers[2] = vers[1];
-                vers[1] = temp;
-            }
-            flatBot(vers[0], vers[1], vers[2], zbuffer, mesh);
-        }else{
-            float weight = (vers[1].y - vers[0].y) / (vers[2].y - vers[0].y);
-            Vector2 split = vers[0].lerp(vers[2], weight);
-//            split.
-//            Vector uvlerped = new Vector(vers[0].u,vers[0].v,0).lerp(new Vector(vers[2].u, vers[2].v, 0), weight);
-//            split.u = uvlerped.x;
-//            split.v = uvlerped.y;
-            if(vers[1].x < split.x){
-                flatBot(vers[0], vers[1], split, zbuffer, mesh);
-                flatTop(vers[1], split, vers[2], zbuffer, mesh);
-            }else{
-                flatBot(vers[0], split, vers[1], zbuffer, mesh);
-                flatTop(split, vers[1], vers[2], zbuffer, mesh);
-            }
-        }
-
+    public Color normalColor(Vec3f normal, Vec3f lightDir){
+        float lightIntensity = normal.dot(lightDir);
+        return new Color(
+                Math.abs(lightIntensity),
+                Math.abs(lightIntensity),
+                Math.abs(lightIntensity));
     }
 
-    //0 and 1 are tops and 0 is the left of those
-    void flatTop(Vector2 a, Vector2 b, Vector2 c, int[][] zbuffer, Mesh mesh){
-        float m0 = (c.x - a.x) / (c.y - a.y);
-        float m1 = (c.x - b.x) / (c.y - b.y);
-
-        int yStart = (int)Math.ceil(a.y - 0.5f);
-        int yEnd = (int)Math.ceil(c.y - 0.5f);
-
-        for(int y = yStart; y < yEnd; y++){
-            float px0 = m0 * ((float)y + 0.5f - a.y) + a.x;
-            float px1 = m1 * ((float)y + 0.5f - b.y) + b.x;
-
-            int xStart = (int)Math.ceil(px0 - 0.5f);
-            int xEnd = (int)Math.ceil(px1 - 0.5f);
-            for(int x = xStart; x < xEnd; x++){
-                drawPixel(a,b,c,zbuffer,mesh,x,y);
-            }
-        }
+    public Color clownColor(int i){
+        return colors[i % colors.length];
     }
 
-    private void drawPixel(Vector2 a, Vector2 b, Vector2 c, int[][] zbuffer, Mesh mesh, int x, int y){
-        Vector bary = RayCaster.barycenter(a,b,c,new Vector2(x,y));
-//        Vector auv = new Vector(a.u, a.v, 0);
-//        Vector buv = new Vector(b.u, b.v, 0);
-//        Vector cuv = new Vector(c.u, c.v, 0);
-//        Vector uv = auv.scale(bary.x).add(buv.scale(bary.y)).add(cuv.scale(bary.z));
-//
-//        color = mesh.texture.getPixel(uv.x, uv.y).toAWTColor();
-//        color = Color.blue;
-        setPixel(x,y);
-    }
-
-
-    // b and c are bottom and and b is the left of those
-    void flatBot(Vector2 a, Vector2 b, Vector2 c, int[][] zbuffer, Mesh mesh){
-        float m0 = (b.x - a.x) / (b.y - a.y);
-        float m1 = (c.x - a.x) / (c.y - a.y);
-
-        int yStart = (int)Math.ceil(a.y - 0.5f);
-        int yEnd = (int)Math.ceil(c.y - 0.5f);
-
-        for(int y = yStart; y < yEnd; y++){
-            float px0 = m0 * ((float)y + 0.5f - a.y) + a.x;
-            float px1 = m1 * ((float)y + 0.5f - a.y) + a.x;
-
-            int xStart = (int)Math.ceil(px0 - 0.5f);
-            int xEnd = (int)Math.ceil(px1 - 0.5f);
-            for(int x = xStart; x < xEnd; x++){
-                drawPixel(a,b,c,zbuffer,mesh,x,y);
-            }
-        }
-    }
-
-    private void setPixel(int x, int y){
-        if((y * app.width + x) >= (app.width * app.height) || (y * app.width + x) < 0)return;
-        app.pixels[y * app.width + x] = app.color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+    public int clamp(int val,int min, int max){
+        return PApplet.max(PApplet.min(val, max), min);
     }
 }
